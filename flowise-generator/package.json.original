@@ -13,11 +13,12 @@
   },
   "dependencies": {
     "@langchain/core": "^0.3.0",
+    "@langchain/community": "^0.3.0",
     "chromadb": "^1.8.1",
-    "cheerio": "^1.0.0",
+    "langchain": "^0.3.0",
     "markdown-to-jsx": "^7.4.7",
-    "z-ai-web-dev-sdk": "^0.0.10",
-    "zod": "^3.23.8"
+    "cheerio": "^1.0.0",
+    "z-ai-web-dev-sdk": "^0.0.10"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -34,8 +35,5 @@
     "agent"
   ],
   "author": "Flowise Generator",
-  "license": "MIT",
-  "overrides": {
-    "zod": "^3.23.8"
-  }
+  "license": "MIT"
 }
