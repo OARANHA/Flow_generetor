@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { Document } from '@langchain/core/documents';
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 
 export interface FlowiseNode {
   id: string;
@@ -229,12 +228,45 @@ export class FlowiseDocProcessor {
   }
 
   async splitDocuments(documents: Document[]): Promise<Document[]> {
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
-      separators: ['\n\n', '\n', ' ', '']
-    });
-    
-    return await splitter.splitDocuments(documents);
+    // Simple text splitter implementation without LangChain dependency
+    const chunkSize = 1000;
+    const chunkOverlap = 200;
+    const result: Document[] = [];
+
+    for (const doc of documents) {
+      const text = doc.pageContent;
+      const chunks: string[] = [];
+
+      // Simple chunking by paragraphs
+      const paragraphs = text.split('\n\n');
+      let currentChunk = '';
+
+      for (const paragraph of paragraphs) {
+        if (currentChunk.length + paragraph.length + 2 > chunkSize && currentChunk.length > 0) {
+          chunks.push(currentChunk.trim());
+          currentChunk = paragraph;
+        } else {
+          currentChunk += (currentChunk.length > 0 ? '\n\n' : '') + paragraph;
+        }
+      }
+
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+      }
+
+      // Create documents from chunks
+      for (let i = 0; i < chunks.length; i++) {
+        result.push(new Document({
+          pageContent: chunks[i],
+          metadata: {
+            ...doc.metadata,
+            chunkIndex: i,
+            totalChunks: chunks.length
+          }
+        }));
+      }
+    }
+
+    return result;
   }
 }

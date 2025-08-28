@@ -1,31 +1,37 @@
-import { Chroma } from '@langchain/community/vectorstores/chroma';
+import { Chroma } from 'chromadb';
 import { Document } from '@langchain/core/documents';
-import { OpenAIEmbeddings } from '@langchain/openai';
 import { FlowiseKnowledge } from './documentProcessor';
 
 export class VectorStoreManager {
   private collectionName: string;
-  private embeddings: OpenAIEmbeddings;
-  private vectorStore: Chroma | null = null;
+  private client: any;
+  private collection: any;
+  private embeddings: any;
 
   constructor(collectionName: string = 'flowise-knowledge') {
     this.collectionName = collectionName;
-    this.embeddings = new OpenAIEmbeddings({
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      modelName: 'text-embedding-ada-002'
-    });
+    this.client = null;
+    this.collection = null;
+    this.embeddings = null;
   }
 
   async initialize(): Promise<void> {
     try {
-      this.vectorStore = await Chroma.fromDocuments(
-        [],
-        this.embeddings,
-        {
-          collectionName: this.collectionName,
-          url: process.env.CHROMA_URL || 'http://localhost:8000'
-        }
-      );
+      // Initialize ChromaDB client
+      const { ChromaClient } = await import('chromadb');
+      this.client = new ChromaClient({
+        path: process.env.CHROMA_URL || 'http://localhost:8000'
+      });
+
+      // Get or create collection
+      try {
+        this.collection = await this.client.getCollection({ name: this.collectionName });
+        console.log('Using existing collection:', this.collectionName);
+      } catch (error) {
+        this.collection = await this.client.createCollection({ name: this.collectionName });
+        console.log('Created new collection:', this.collectionName);
+      }
+
       console.log('Vector store initialized successfully');
     } catch (error) {
       console.error('Error initializing vector store:', error);
@@ -34,39 +40,52 @@ export class VectorStoreManager {
   }
 
   async addKnowledge(knowledge: FlowiseKnowledge): Promise<void> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
-    const documents: Document[] = [];
+    try {
+      const documents: Document[] = [];
 
-    // Add nodes as documents
-    for (const node of knowledge.nodes) {
-      const doc = new Document({
-        pageContent: this.formatNodeAsDocument(node),
-        metadata: {
-          type: 'node',
-          category: node.category,
-          nodeType: node.type,
-          nodeId: node.id,
-          name: node.name
-        }
-      });
-      documents.push(doc);
+      // Add nodes as documents
+      for (const node of knowledge.nodes) {
+        const doc = new Document({
+          pageContent: this.formatNodeAsDocument(node),
+          metadata: {
+            type: 'node',
+            category: node.category,
+            nodeType: node.type,
+            nodeId: node.id,
+            name: node.name
+          }
+        });
+        documents.push(doc);
+      }
+
+      // Add tutorials
+      documents.push(...knowledge.tutorials);
+
+      // Add flows
+      documents.push(...knowledge.flows);
+
+      // Add agent flows
+      documents.push(...knowledge.agentFlows);
+
+      // Add documents to vector store
+      for (let i = 0; i < documents.length; i++) {
+        const doc = documents[i];
+        await this.collection.add({
+          ids: [doc.metadata.id || `doc_${i}`],
+          documents: [doc.pageContent],
+          metadatas: [doc.metadata]
+        });
+      }
+
+      console.log(`Added ${documents.length} documents to vector store`);
+    } catch (error) {
+      console.error('Error adding knowledge to vector store:', error);
+      throw error;
     }
-
-    // Add tutorials
-    documents.push(...knowledge.tutorials);
-
-    // Add flows
-    documents.push(...knowledge.flows);
-
-    // Add agent flows
-    documents.push(...knowledge.agentFlows);
-
-    // Add documents to vector store
-    await this.vectorStore.addDocuments(documents);
-    console.log(`Added ${documents.length} documents to vector store`);
   }
 
   private formatNodeAsDocument(node: any): string {
@@ -100,13 +119,25 @@ export class VectorStoreManager {
   }
 
   async search(query: string, k: number = 5): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      const results = await this.vectorStore.similaritySearch(query, k);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: [query],
+        nResults: k
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error searching vector store:', error);
       throw error;
@@ -114,15 +145,26 @@ export class VectorStoreManager {
   }
 
   async searchByType(query: string, type: string, k: number = 5): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Create a filter for the specific type
-      const filter = { type };
-      const results = await this.vectorStore.similaritySearch(query, k, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: [query],
+        nResults: k,
+        where: { type }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error searching vector store by type:', error);
       throw error;
@@ -130,15 +172,26 @@ export class VectorStoreManager {
   }
 
   async searchByCategory(query: string, category: string, k: number = 5): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Create a filter for the specific category
-      const filter = { category };
-      const results = await this.vectorStore.similaritySearch(query, k, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: [query],
+        nResults: k,
+        where: { category }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error searching vector store by category:', error);
       throw error;
@@ -146,15 +199,26 @@ export class VectorStoreManager {
   }
 
   async getAllNodes(): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Get all documents with type 'node'
-      const filter = { type: 'node' };
-      const results = await this.vectorStore.similaritySearch('node', 100, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: ['node'],
+        nResults: 100,
+        where: { type: 'node' }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error getting all nodes:', error);
       throw error;
@@ -162,15 +226,26 @@ export class VectorStoreManager {
   }
 
   async getTutorials(): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Get all documents with type 'tutorial'
-      const filter = { type: 'tutorial' };
-      const results = await this.vectorStore.similaritySearch('tutorial', 50, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: ['tutorial'],
+        nResults: 50,
+        where: { type: 'tutorial' }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error getting tutorials:', error);
       throw error;
@@ -178,15 +253,26 @@ export class VectorStoreManager {
   }
 
   async getFlows(): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Get all documents with type 'flow'
-      const filter = { type: 'flow' };
-      const results = await this.vectorStore.similaritySearch('flow', 50, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: ['flow'],
+        nResults: 50,
+        where: { type: 'flow' }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error getting flows:', error);
       throw error;
@@ -194,15 +280,26 @@ export class VectorStoreManager {
   }
 
   async getAgentFlows(): Promise<Document[]> {
-    if (!this.vectorStore) {
+    if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
 
     try {
-      // Get all documents with category 'agentflow'
-      const filter = { category: 'agentflow' };
-      const results = await this.vectorStore.similaritySearch('agentflow', 50, filter);
-      return results;
+      const results = await this.collection.query({
+        queryTexts: ['agentflow'],
+        nResults: 50,
+        where: { category: 'agentflow' }
+      });
+
+      const documents: Document[] = [];
+      for (let i = 0; i < results.ids[0].length; i++) {
+        documents.push(new Document({
+          pageContent: results.documents[0][i],
+          metadata: results.metadatas[0][i]
+        }));
+      }
+
+      return documents;
     } catch (error) {
       console.error('Error getting agent flows:', error);
       throw error;

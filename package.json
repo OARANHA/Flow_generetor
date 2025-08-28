@@ -27,6 +27,12 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-toast": "^1.2.14",
+    "@langchain/core": "^0.3.0",
+    "chromadb": "^1.8.1",
+    "cheerio": "^1.0.0",
+    "markdown-to-jsx": "^7.4.7",
+    "z-ai-web-dev-sdk": "^0.0.10",
+    "zod": "^3.23.8",
     "tsx": "^4.20.3"
   },
   "devDependencies": {
