@@ -1,141 +1,211 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# 🤖 Flow Generator
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
+Um sistema autônomo que gera fluxos válidos para o Flowise (incluindo AgentFlow v2 e ChatFlow) com base em instruções em linguagem natural, utilizando a documentação oficial como fonte de conhecimento.
 
-## ✨ Technology Stack
+## ✨ Funcionalidades
 
-This scaffold provides a robust foundation built with:
+- 🤖 **Geração AI-Powered**: Usa modelos avançados de IA para gerar configurações JSON compatíveis com Flowise
+- 📚 **Sistema RAG**: Aproveita a documentação oficial do Flowise para geração precisa de fluxos
+- 🔍 **Recuperação Inteligente**: Encontra nós, tutoriais e exemplos relevantes na base de conhecimento
+- ✅ **Validação**: Garante que os fluxos gerados são compatíveis com o Flowise
+- 🌐 **Interface Web**: Interface amigável para fácil geração de fluxos
+- 💻 **Suporte CLI**: Interface de linha de comando para automação e scripts
+- 📝 **Sugestões**: Fornece sugestões de melhoria para fluxos gerados
+- 📥 **Opções de Exportação**: Baixe fluxos como arquivos JSON ou copie para a área de transferência
 
-### 🎯 Core Framework
-- **⚡ Next.js 15** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+## 🚀 Como Usar
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+### Pré-requisitos
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
-- **✅ Zod** - TypeScript-first schema validation
+- Node.js 18+
+- npm ou yarn
+- Chave de API da OpenAI (para embeddings e geração de IA)
 
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Axios** - Promise-based HTTP client
+### Instalação
 
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation Node.js and TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
+1. **Clone o repositório**:
+```bash
+git clone https://github.com/OARANHA/Flow_generetor.git
+cd Flow_generetor
+```
 
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
+2. **Instale as dependências**:
+```bash
+npm install
+```
 
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
+3. **Configure as variáveis de ambiente**:
+Crie um arquivo `.env.local` com:
+```env
+OPENAI_API_KEY=sua_chave_api_aqui
+CHROMA_URL=http://localhost:8000
+```
 
-## 🎯 Why This Scaffold?
+4. **Inicialize o sistema**:
+```bash
+npm run flowise:init
+```
 
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
+5. **Inicie o servidor de desenvolvimento**:
+```bash
+npm run dev
+```
 
-## 🚀 Quick Start
+### Interface Web
+
+Acesse: `http://localhost:3000/flowise-generator`
+
+1. Descreva seu fluxo em linguagem natural
+2. Escolha entre ChatFlow ou AgentFlow v2
+3. Clique em "Generate Flow"
+4. Baixe ou copie a configuração JSON gerada
+
+### Uso via CLI
 
 ```bash
-# Install dependencies
-npm install
+# Gerar ChatFlow básico
+npm run generate-flow "Crie um chatbot que busca no Google e resume os resultados"
 
-# Start development server
-npm run dev
+# Gerar AgentFlow v2
+npm run generate-flow "Construa um agente que lê arquivos PDF" --agentflow
 
-# Build for production
-npm run build
-
-# Start production server
-npm start
+# Salvar em local específico
+npm run generate-flow "Bot de suporte ao cliente" --output ./meu-fluxo.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+### Exemplos de Descrições
 
-## 🤖 Powered by Z.ai
+**ChatFlow:**
+- "Crie um chatbot que busca no Google e resume os resultados usando GPT-4"
+- "Construa um bot de suporte ao cliente que pode responder FAQs e escalar para agentes humanos"
+- "Crie um fluxo que processa entrada do usuário, realiza análise de sentimento e gera respostas apropriadas"
 
-This scaffold is optimized for use with [Z.ai](https://chat.z.ai) - your AI assistant for:
+**AgentFlow v2:**
+- "Construa um AgentFlow v2 que pode ler arquivos PDF, responder perguntas sobre o conteúdo e salvar respostas em um banco de dados"
+- "Crie um agente que pode navegar em sites, extrair informações e criar resumos estruturados"
+- "Construa um sistema multi-agente onde um agente busca informações e outro sintetiza os resultados"
 
-- **💻 Code Generation** - Generate components, pages, and features instantly
-- **🎨 UI Development** - Create beautiful interfaces with AI assistance  
-- **🔧 Bug Fixing** - Identify and resolve issues with intelligent suggestions
-- **📝 Documentation** - Auto-generate comprehensive documentation
-- **🚀 Optimization** - Performance improvements and best practices
-
-Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https://chat.z.ai) and experience the future of AI-powered development!
-
-## 📁 Project Structure
+## 🏗️ Arquitetura do Sistema
 
 ```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+Flow Generator
+├── Processamento de Documentação
+│   ├── Repositório FlowiseDocs
+│   ├── Processador de Documentos
+│   └── Base de Conhecimento
+├── Sistema RAG
+│   ├── Vector Store (ChromaDB)
+│   ├── Embeddings de Documentos
+│   └── Busca Semântica
+├── Agente de IA
+│   ├── Processamento de Linguagem Natural
+│   ├── Geração de Configuração de Fluxo
+│   └── Validação
+└── Interfaces de Usuário
+    ├── Interface Web (Next.js)
+    ├── Endpoints de API
+    └── Ferramenta CLI
 ```
 
-## 🎨 Available Features & Components
+## 📁 Estrutura do Projeto
 
-This scaffold includes a comprehensive set of modern web development tools:
+```
+flowise-generator/
+├── src/
+│   ├── documentProcessor.ts    # Processamento de documentação
+│   ├── vectorStore.ts          # Gerenciamento de vector store
+│   ├── flowiseAgent.ts         # Agente de IA para geração de fluxos
+│   ├── init.ts                # Inicialização do sistema
+│   └── index.ts               # Ponto de entrada principal
+├── examples/
+│   └── demo.ts                # Demo e modo interativo
+├── package.json
+├── tsconfig.json
+└── README.md
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+src/app/flowise-generator/
+├── page.tsx                   # Interface web
+└── api/
+    └── flowise/
+        └── generate/
+            └── route.ts       # Endpoint de API
+```
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+## 🔧 Scripts Disponíveis
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+```bash
+npm run flowise-init          # Inicializa o sistema
+npm run generate-flow         # Gera fluxos via CLI
+npm run flowise-demo          # Executa exemplos de demonstração
+npm run flowise-interactive   # Modo interativo
+npm run dev                   # Inicia servidor de desenvolvimento
+```
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Axios + TanStack Query
-- **State Management**: Simple and scalable with Zustand
+## 📊 Saída Gerada
 
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
+O sistema gera JSON válido para Flowise como este:
 
-## 🤝 Get Started with Z.ai
+```json
+{
+  "nodes": [
+    {
+      "id": "openai-chat-1",
+      "type": "OpenAI",
+      "position": {"x": 100, "y": 100},
+      "data": {
+        "label": "OpenAI Chat Model",
+        "name": "openai-chat",
+        "type": "OpenAI",
+        "category": "chat-models",
+        "inputs": {
+          "modelName": "gpt-4",
+          "apiKey": "{{OPENAI_API_KEY}}",
+          "temperature": 0.7
+        },
+        "outputs": {
+          "message": "message"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "input-1",
+      "target": "openai-chat-1",
+      "sourceHandle": "message",
+      "targetHandle": "message"
+    }
+  ]
+}
+```
 
-1. **Clone this scaffold** to jumpstart your project
-2. **Visit [chat.z.ai](https://chat.z.ai)** to access your AI coding assistant
-3. **Start building** with intelligent code generation and assistance
-4. **Deploy with confidence** using the production-ready setup
+## 🤝 Contribuição
+
+1. Faça um fork do repositório
+2. Crie uma branch de feature (`git checkout -b feature/nova-funcionalidade`)
+3. Faça commit das suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+MIT License - veja o arquivo LICENSE para detalhes.
+
+## 🙏 Agradecimentos
+
+- FlowiseAI pela excelente documentação
+- LangChain pelo framework RAG
+- OpenAI pelos modelos de IA
+- ChromaDB pelo armazenamento vetorial
+
+## 📞 Suporte
+
+Para problemas e perguntas:
+- Crie uma issue no repositório
+- Verifique a seção de troubleshooting
+- Revise os exemplos de descrição
 
 ---
 
-Built with ❤️ for the developer community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
+**Desenvolvido com ❤️ usando IA e as melhores práticas de desenvolvimento**
